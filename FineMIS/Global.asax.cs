@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
-using System.Threading;
-using System.Web;
+using System.Configuration;
 using System.Web.Routing;
-using System.Web.Security;
-using System.Web.SessionState;
 using Microsoft.AspNet.FriendlyUrls;
+using StackExchange.Profiling;
+using StackExchange.Profiling.Storage;
 
 namespace FineMIS
 {
@@ -17,6 +13,7 @@ namespace FineMIS
         protected void Application_Start(object sender, EventArgs e)
         {
             RouteTable.Routes.EnableFriendlyUrls(new FriendlyUrlSettings { AutoRedirectMode = RedirectMode.Permanent });
+            MiniProfiler.Settings.Storage = new SqlServerStorage(ConfigurationManager.ConnectionStrings["miniProfiler"].ConnectionString);
         }
 
         protected void Session_Start(object sender, EventArgs e)
@@ -26,7 +23,12 @@ namespace FineMIS
 
         protected void Application_BeginRequest(object sender, EventArgs e)
         {
+            MiniProfiler.Start();
+        }
 
+        protected void Application_EndRequest(object sender, EventArgs e)
+        {
+            MiniProfiler.Stop();
         }
 
         protected void Application_AuthenticateRequest(object sender, EventArgs e)

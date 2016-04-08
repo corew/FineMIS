@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
@@ -12,49 +10,31 @@ namespace FineMIS
 {
     public sealed class Security
     {
-        static Security()
-        {
-
-        }
-
         /// <summary>
         /// Handles the AuthenticateRequest event of the context control.
         /// </summary>
         public static void AuthenticateRequest()
         {
             // default to an empty/unauthenticated user to assign to context.User.
-            var identity = new CustomIdentity(string.Empty, 0, 0, false);
+            var identity = new CustomIdentity(string.Empty, 0, 0, false, null);
             var principal = new CustomPrincipal(identity);
 
-            var context = HttpContext.Current;
-
-            var authCookie = context.Request.Cookies[FormsAuthentication.FormsCookieName];
-            if (authCookie != null)
+            if (HttpContext.Current.User != null && HttpContext.Current.User.Identity.IsAuthenticated)
             {
-                FormsAuthenticationTicket authTicket;
-                try
+                var ticket = (HttpContext.Current.User.Identity as FormsIdentity)?.Ticket;
+                if (!string.IsNullOrWhiteSpace(ticket?.UserData))
                 {
-                    authTicket = FormsAuthentication.Decrypt(authCookie.Value);
-                }
-                catch (Exception)
-                {
-                    context.Request.Cookies.Remove(FormsAuthentication.FormsCookieName);
-                    authTicket = null;
-
-                    // log here
-                }
-
-                if (!string.IsNullOrWhiteSpace(authTicket?.UserData))
-                {
-                    var datas = authTicket.UserData.Split('|');
-                    if (datas.Length == 3)
+                    var datas = ticket.UserData.Split('|');
+                    if (datas.Length == 4)
                     {
-                        identity = new CustomIdentity(datas[0], datas[1].ToInt64(), datas[2].ToInt64(), true);
+                        identity = new CustomIdentity(datas[0], datas[1].ToInt64(), datas[2].ToInt64(), true,
+                            datas[3].Split(',').ToInt64Array());
                         principal = new CustomPrincipal(identity);
                     }
                 }
             }
-            context.User = principal;
+
+            HttpContext.Current.User = principal;
         }
 
         /// <summary>
@@ -62,7 +42,9 @@ namespace FineMIS
         /// </summary>
         public static void SignOut()
         {
-            // using a custom cookie name based on the current blog instance.
+            // clear session
+            Current.Session?.Clear();
+
             var cookie = HttpContext.Current.Request.Cookies[FormsAuthentication.FormsCookieName];
             if (cookie != null)
             {
@@ -80,6 +62,9 @@ namespace FineMIS
         /// <returns>True if the user is successfully authenticated and signed in; false otherwise.</returns>
         public static bool AuthenticateUser(string username, string password, bool rememberMe)
         {
+            // clear session
+            Current.Session?.Clear();
+
             var un = (username ?? string.Empty).Trim();
             var pw = (password ?? string.Empty).Trim();
 
@@ -87,10 +72,18 @@ namespace FineMIS
             {
                 var user = SYS_USER.SingleOrDefault(Sql.Builder.Where("UserName = @0", un).Where("Active = @0", true));
 
-                // todo
-                // hash password
+                // todo hash password
                 if (user != null && user.Password == pw)
                 {
+                    var roles = SYS_USER_ROLE.Fetch(Sql.Builder.Where("UserId = @0", user.Id));
+                    var result = new StringBuilder();
+                    foreach (var role in roles)
+                    {
+                        result.Append(role.RoleId);
+                        result.Append(",");
+                    }
+                    var roleIds = result.ToString().TrimEnd(',');
+
                     var context = HttpContext.Current;
                     var expirationDate = DateTime.Now.Add(FormsAuthentication.Timeout);
 
@@ -100,7 +93,7 @@ namespace FineMIS
                         DateTime.Now,
                         expirationDate,
                         rememberMe,
-                        $"{user.Name}|{user.Id}|{user.CmpyBelongTo}",
+                        $"{user.Name}|{user.Id}|{user.CmpyBelongTo}|{roleIds}",
                         FormsAuthentication.FormsCookiePath
                         );
 

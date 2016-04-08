@@ -13,6 +13,15 @@ namespace FineMIS.Pages {
     public partial class Page {
         
         /// <summary>
+        /// Head 控件。
+        /// </summary>
+        /// <remarks>
+        /// 自动生成的字段。
+        /// 若要进行修改，请将字段声明从设计器文件移到代码隐藏文件。
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.ContentPlaceHolder Head;
+        
+        /// <summary>
         /// form1 控件。
         /// </summary>
         /// <remarks>
@@ -31,31 +40,13 @@ namespace FineMIS.Pages {
         protected global::FineUI.PageManager PageManager1;
         
         /// <summary>
-        /// Head 控件。
+        /// CPHConnector 控件。
         /// </summary>
         /// <remarks>
         /// 自动生成的字段。
         /// 若要进行修改，请将字段声明从设计器文件移到代码隐藏文件。
         /// </remarks>
-        protected global::System.Web.UI.WebControls.ContentPlaceHolder Head;
-        
-        /// <summary>
-        /// Panel1 控件。
-        /// </summary>
-        /// <remarks>
-        /// 自动生成的字段。
-        /// 若要进行修改，请将字段声明从设计器文件移到代码隐藏文件。
-        /// </remarks>
-        protected global::FineUI.Panel Panel1;
-        
-        /// <summary>
-        /// CPHConnector1 控件。
-        /// </summary>
-        /// <remarks>
-        /// 自动生成的字段。
-        /// 若要进行修改，请将字段声明从设计器文件移到代码隐藏文件。
-        /// </remarks>
-        protected global::FineUI.CPHConnector CPHConnector1;
+        protected global::FineUI.CPHConnector CPHConnector;
         
         /// <summary>
         /// Main 控件。
@@ -67,6 +58,15 @@ namespace FineMIS.Pages {
         protected global::System.Web.UI.WebControls.ContentPlaceHolder Main;
         
         /// <summary>
+        /// MainWindow 控件。
+        /// </summary>
+        /// <remarks>
+        /// 自动生成的字段。
+        /// 若要进行修改，请将字段声明从设计器文件移到代码隐藏文件。
+        /// </remarks>
+        protected global::FineUI.Window MainWindow;
+        
+        /// <summary>
         /// Foot 控件。
         /// </summary>
         /// <remarks>
@@ -74,14 +74,5 @@ namespace FineMIS.Pages {
         /// 若要进行修改，请将字段声明从设计器文件移到代码隐藏文件。
         /// </remarks>
         protected global::System.Web.UI.WebControls.ContentPlaceHolder Foot;
-        
-        /// <summary>
-        /// Window1 控件。
-        /// </summary>
-        /// <remarks>
-        /// 自动生成的字段。
-        /// 若要进行修改，请将字段声明从设计器文件移到代码隐藏文件。
-        /// </remarks>
-        protected global::FineUI.Window Window1;
     }
 }

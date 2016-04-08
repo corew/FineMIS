@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.Net.Compilers.1.2.1\build\Microsoft.Net.Compilers.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.1.2.1\build\Microsoft.Net.Compilers.props')" />
   <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
-  <Import Project="..\packages\Microsoft.Net.Compilers.1.1.1\build\Microsoft.Net.Compilers.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.1.1.1\build\Microsoft.Net.Compilers.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -55,6 +55,10 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="MiniProfiler, Version=3.2.0.157, Culture=neutral, PublicKeyToken=b44f9351044011a3, processorArchitecture=MSIL">
+      <HintPath>..\packages\MiniProfiler.3.2.0.157\lib\net40\MiniProfiler.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -77,68 +81,63 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="401.html" />
-    <Content Include="404.html" />
-    <Content Include="500.html" />
+    <Content Include="Error\401.html" />
+    <Content Include="Error\404.html" />
+    <Content Include="Error\500.html" />
     <Content Include="Default.aspx" />
-    <Content Include="extjs\ext-all.js" />
-    <Content Include="extjs\ext-part1.js" />
-    <Content Include="extjs\ext-part2.js" />
-    <Content Include="extjs\ext-theme-neptune.js" />
-    <Content Include="extjs\lang\en.js" />
-    <Content Include="extjs\lang\pt_BR.js" />
-    <Content Include="extjs\lang\ru.js" />
-    <Content Include="extjs\lang\tr.js" />
-    <Content Include="extjs\lang\zh_CN.js" />
-    <Content Include="extjs\lang\zh_TW.js" />
-    <Content Include="extjs\res\css\ux.css" />
-    <Content Include="extjs\res\ext-theme-access\all.css" />
-    <Content Include="extjs\res\ext-theme-classic\all.css" />
-    <Content Include="extjs\res\ext-theme-gray\all.css" />
-    <Content Include="extjs\res\ext-theme-neptune\all.css" />
-    <Content Include="extjs\res\images\accordion_hover.gif" />
-    <Content Include="extjs\res\images\accordion_link_hover.gif" />
-    <Content Include="extjs\res\images\accordion_link_hover2.gif" />
-    <Content Include="extjs\res\images\accordion_reset.gif" />
-    <Content Include="extjs\res\images\accordion_select.gif" />
-    <Content Include="extjs\res\images\box.gif" />
-    <Content Include="extjs\res\images\bullet_cross.png" />
-    <Content Include="extjs\res\images\check-back1.gif" />
-    <Content Include="extjs\res\images\check.gif" />
-    <Content Include="extjs\res\images\checked.gif" />
-    <Content Include="extjs\res\images\checked_disabled.gif" />
-    <Content Include="extjs\res\images\check_notuse_back.gif" />
-    <Content Include="extjs\res\images\check_notuse__1.gif" />
-    <Content Include="extjs\res\images\delete.gif" />
-    <Content Include="extjs\res\images\dialog-ok.gif" />
-    <Content Include="extjs\res\images\dialog-ok.png" />
-    <Content Include="extjs\res\images\elbow-empty.gif" />
-    <Content Include="extjs\res\images\elbow-end.gif" />
-    <Content Include="extjs\res\images\elbow-line.gif" />
-    <Content Include="extjs\res\images\elbow.gif" />
-    <Content Include="extjs\res\images\loading_24.gif" />
-    <Content Include="extjs\res\images\loading_25.gif" />
-    <Content Include="extjs\res\images\loading_32.gif" />
-    <Content Include="extjs\res\images\loading_32_2.gif" />
-    <Content Include="extjs\res\images\loading_42.gif" />
-    <Content Include="extjs\res\images\loading_50.gif" />
-    <Content Include="extjs\res\images\n-error.png" />
-    <Content Include="extjs\res\images\n-information.png" />
-    <Content Include="extjs\res\images\n-success.png" />
-    <Content Include="extjs\res\images\n-warn.png" />
-    <Content Include="extjs\res\images\pagemenu-separator.gif" />
-    <Content Include="extjs\res\images\pagemenu_toolbar_background.gif" />
-    <Content Include="extjs\res\images\s.gif" />
-    <Content Include="extjs\res\images\tick.png" />
-    <Content Include="extjs\res\images\uncheck.gif" />
-    <Content Include="extjs\res\images\unchecked.gif" />
-    <Content Include="extjs\res\images\unchecked_disabled.gif" />
-    <Content Include="extjs\res\s.gif" />
-    <Content Include="extjs\version.txt" />
+    <Content Include="extjs_builder\res\access.css" />
+    <Content Include="extjs_builder\res\classic.css" />
+    <Content Include="extjs_builder\res\FineUI.css" />
+    <Content Include="extjs_builder\res\gray.css" />
+    <Content Include="extjs_builder\res\Grid.css" />
+    <Content Include="extjs_builder\res\images\accordion_hover.gif" />
+    <Content Include="extjs_builder\res\images\accordion_link_hover.gif" />
+    <Content Include="extjs_builder\res\images\accordion_link_hover2.gif" />
+    <Content Include="extjs_builder\res\images\accordion_reset.gif" />
+    <Content Include="extjs_builder\res\images\accordion_select.gif" />
+    <Content Include="extjs_builder\res\images\box.gif" />
+    <Content Include="extjs_builder\res\images\bullet_cross.png" />
+    <Content Include="extjs_builder\res\images\check-back1.gif" />
+    <Content Include="extjs_builder\res\images\check.gif" />
+    <Content Include="extjs_builder\res\images\checked.gif" />
+    <Content Include="extjs_builder\res\images\checked_disabled.gif" />
+    <Content Include="extjs_builder\res\images\check_notuse_back.gif" />
+    <Content Include="extjs_builder\res\images\check_notuse__1.gif" />
+    <Content Include="extjs_builder\res\images\delete.gif" />
+    <Content Include="extjs_builder\res\images\dialog-ok.gif" />
+    <Content Include="extjs_builder\res\images\dialog-ok.png" />
+    <Content Include="extjs_builder\res\images\elbow-empty.gif" />
+    <Content Include="extjs_builder\res\images\elbow-end.gif" />
+    <Content Include="extjs_builder\res\images\elbow-line.gif" />
+    <Content Include="extjs_builder\res\images\elbow.gif" />
+    <Content Include="extjs_builder\res\images\loading_24.gif" />
+    <Content Include="extjs_builder\res\images\loading_25.gif" />
+    <Content Include="extjs_builder\res\images\loading_32.gif" />
+    <Content Include="extjs_builder\res\images\loading_32_2.gif" />
+    <Content Include="extjs_builder\res\images\loading_42.gif" />
+    <Content Include="extjs_builder\res\images\loading_50.gif" />
+    <Content Include="extjs_builder\res\images\n-error.png" />
+    <Content Include="extjs_builder\res\images\n-information.png" />
+    <Content Include="extjs_builder\res\images\n-success.png" />
+    <Content Include="extjs_builder\res\images\n-warn.png" />
+    <Content Include="extjs_builder\res\images\pagemenu-separator.gif" />
+    <Content Include="extjs_builder\res\images\pagemenu_toolbar_background.gif" />
+    <Content Include="extjs_builder\res\images\s.gif" />
+    <Content Include="extjs_builder\res\images\tick.png" />
+    <Content Include="extjs_builder\res\images\uncheck.gif" />
+    <Content Include="extjs_builder\res\images\unchecked.gif" />
+    <Content Include="extjs_builder\res\images\unchecked_disabled.gif" />
+    <Content Include="extjs_builder\res\neptune.css" />
+    <Content Include="extjs_builder\res\Notification.css" />
+    <Content Include="extjs_builder\res\PageLoading.css" />
+    <Content Include="extjs_builder\res\Tree.css" />
     <Content Include="extjs_builder\version.txt" />
     <Content Include="Global.asax" />
-    <Content Include="Index.aspx" />
     <Content Include="Login.aspx" />
+    <Content Include="mini-profiler-resources\include.partial.html" />
+    <Content Include="mini-profiler-resources\includes.css" />
+    <Content Include="mini-profiler-resources\includes.js" />
+    <Content Include="mini-profiler-resources\share.html" />
     <Content Include="Modules\SYS\Menu\Menu.aspx" />
     <Content Include="Modules\SYS\Menu\Menu_detail.aspx" />
     <Content Include="PetaPoco\Models.tt">
@@ -153,6 +152,9 @@
     <Content Include="Pages\Page.Master" />
     <Content Include="res\icon.zip" />
     <Content Include="res\images.zip" />
+    <Content Include="res\js\jquery.min.map" />
+    <Content Include="mini-profiler-resources\includes.tmpl" />
+    <Content Include="mini-profiler-resources\README.md" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -181,15 +183,6 @@
     <Content Include="extjs_builder\js\ux\SimplePagingToolbar.js" />
     <Content Include="extjs_builder\js\ux\TabCloseMenu.js" />
     <Content Include="extjs_builder\js\修改ext-all.js（为了支持 IE11）.txt" />
-    <Content Include="extjs_builder\res\access.css" />
-    <Content Include="extjs_builder\res\classic.css" />
-    <Content Include="extjs_builder\res\FineUI.css" />
-    <Content Include="extjs_builder\res\gray.css" />
-    <Content Include="extjs_builder\res\Grid.css" />
-    <Content Include="extjs_builder\res\neptune.css" />
-    <Content Include="extjs_builder\res\Notification.css" />
-    <Content Include="extjs_builder\res\PageLoading.css" />
-    <Content Include="extjs_builder\res\Tree.css" />
     <Content Include="res\css\common.css" />
     <Content Include="res\css\default.css" />
     <Content Include="res\google-code-prettify\lang-apollo.js" />
@@ -245,13 +238,6 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Index.aspx.cs">
-      <DependentUpon>Index.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Index.aspx.designer.cs">
-      <DependentUpon>Index.aspx</DependentUpon>
-    </Compile>
     <Compile Include="Login.aspx.cs">
       <DependentUpon>Login.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -259,7 +245,7 @@
     <Compile Include="Login.aspx.designer.cs">
       <DependentUpon>Login.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Models\Comparer\SYS_MENU_Comparer.cs" />
+    <Compile Include="Models\SYS\SYS_ACTION.cs" />
     <Compile Include="Models\SYS\SYS_MENU.cs" />
     <Compile Include="Modules\SYS\Menu\Menu.aspx.cs">
       <DependentUpon>Menu.aspx</DependentUpon>
@@ -323,15 +309,7 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="extjs\res\ext-theme-access\images\" />
-    <Folder Include="extjs\res\ext-theme-classic\images\" />
-    <Folder Include="extjs\res\ext-theme-gray\images\" />
-    <Folder Include="extjs\res\ext-theme-neptune\images\" />
-    <Folder Include="extjs\src\" />
-    <Folder Include="extjs_builder\ajaxminifier\" />
-    <Folder Include="extjs_builder\res\images\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -361,8 +339,8 @@
     <PropertyGroup>
       <ErrorText>此项目引用这台计算机上缺少的 NuGet 程序包。使用 NuGet 程序包还原可下载这些程序包。有关详细信息，请参阅 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.1.1.1\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.1.1.1\build\Microsoft.Net.Compilers.props'))" />
     <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.1\build\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.1.2.1\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.1.2.1\build\Microsoft.Net.Compilers.props'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -9,7 +9,9 @@ using FineMIS.Controls;
 using FineUI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OutOfMemory;
 using PetaPoco;
+using StackExchange.Profiling;
 
 namespace FineMIS.Pages
 {
@@ -22,20 +24,20 @@ namespace FineMIS.Pages
             base.OnInit(e);
 
             // 此用户是否有访问此页面的权限
-            if (!CheckPowerView())
+            if (!CheckView())
             {
-                CheckPowerFailWithPage();
+                //CheckPowerFailWithPage();
                 return;
             }
+        }
 
-            // 设置主题
-            if (PageManager.Instance != null)
-            {
-                PageManager.Instance.Theme = (Theme)Enum.Parse(typeof(Theme), Settings.Theme, true);
-            }
+        protected override void OnPreRender(EventArgs e)
+        {
+            base.OnPreRender(e);
+            // 显示MiniProfiler
+            Response.Write(MiniProfiler.RenderIncludes(RenderPosition.Right));
 
-            // 设置页面标题
-            Page.Title = Settings.Title;
+            Response.Write(Request.QueryString);
         }
 
         #endregion
@@ -51,9 +53,6 @@ namespace FineMIS.Pages
         #endregion
 
         #region 只读静态变量
-
-        private static readonly string CHECK_POWER_FAIL_PAGE_MESSAGE = "您无权访问此页面！";
-        private static readonly string CHECK_POWER_FAIL_ACTION_MESSAGE = "您无权进行此操作！";
 
         public static readonly string FORCE_REFRESH = "FORCE_REFRESH";
         public static readonly string DEFAULT_ORDER_BY = "Id DESC";
@@ -82,7 +81,7 @@ namespace FineMIS.Pages
             }
             catch (Exception)
             {
-                // TODO
+                // ignored
             }
 
             return queryIntValue;
@@ -90,206 +89,20 @@ namespace FineMIS.Pages
 
         #endregion
 
-        #region 当前登录用户信息
-
-        // http://blog.163.com/zjlovety@126/blog/static/224186242010070024282/
-        // http://www.cnblogs.com/gaoshuai/articles/1863231.html
-        /// <summary>
-        ///     当前登录用户的角色列表
-        /// </summary>
-        /// <returns></returns>
-        protected List<int> GetIdentityRoleIDs()
-        {
-            var roleIDs = new List<int>();
-
-            if (!User.Identity.IsAuthenticated) return roleIDs;
-            var ticket = ((FormsIdentity)User.Identity).Ticket;
-            var userData = ticket.UserData;
-
-            roleIDs.AddRange(from roleId in userData.Split(',')
-                             where !string.IsNullOrEmpty(roleId)
-                             select Convert.ToInt32(roleId));
-
-            return roleIDs;
-        }
-
-        /// <summary>
-        ///     当前登录用户名
-        /// </summary>
-        /// <returns></returns>
-        protected string GetIdentityName()
-        {
-            return User.Identity.IsAuthenticated ? User.Identity.Name : string.Empty;
-        }
-
-        /// <summary>
-        ///     创建表单验证的票证并存储在客户端Cookie中
-        /// </summary>
-        /// <param name="userName">当前登录用户名</param>
-        /// <param name="roleIDs">当前登录用户的角色ID列表</param>
-        /// <param name="isPersistent">是否跨浏览器会话保存票证</param>
-        /// <param name="expiration">过期时间</param>
-        protected void CreateFormsAuthenticationTicket(string userName, string roleIDs, bool isPersistent,
-            DateTime expiration)
-        {
-            // 创建Forms身份验证票据
-            var ticket = new FormsAuthenticationTicket(1,
-                userName, // 与票证关联的用户名
-                DateTime.Now, // 票证发出时间
-                expiration, // 票证过期时间
-                isPersistent, // 如果票证将存储在持久性 Cookie 中（跨浏览器会话保存），则为 true；否则为 false。
-                roleIDs // 存储在票证中的用户特定的数据
-                );
-
-            // 对Forms身份验证票据进行加密，然后保存到客户端Cookie中
-            var hashTicket = FormsAuthentication.Encrypt(ticket);
-            var cookie = new HttpCookie(FormsAuthentication.FormsCookieName, hashTicket)
-            {
-                HttpOnly = true,
-
-                // 1. 关闭浏览器即删除（Session Cookie）：DateTime.MinValue
-                // 2. 指定时间后删除：大于 DateTime.Now 的某个值
-                // 3. 删除Cookie：小于 DateTime.Now 的某个值
-                Expires = isPersistent ? expiration : DateTime.MinValue
-            };
-
-            Response.Cookies.Add(cookie);
-        }
-
-        #endregion
-
         #region 权限检查
 
         /// <summary>
-        ///     检查当前用户是否拥有当前页面的浏览权限
-        ///     页面需要先定义ViewPower属性，以确定页面与某个浏览权限的对应关系
+        /// 检查当前用户是否拥有当前页面的浏览权限
         /// </summary>
         /// <returns></returns>
-        protected bool CheckPowerView()
+        protected bool CheckView()
         {
-            return true;
+            return SYS_MENU_Helper.Menus.Any(menu => menu.ViewName == GetType().GetDescription());
         }
 
-        /// <summary>
-        ///     检查当前用户是否拥有某个权限
-        /// </summary>
-        /// <returns></returns>
-        protected bool CheckPower(string powerName)
+        protected bool CheckControl(Control control)
         {
-            // 如果权限名为空，则放行
-            if (string.IsNullOrEmpty(powerName))
-            {
-                return true;
-            }
-
-            // 当前登陆用户的权限列表
-            var rolePowerNames = GetRolePowerNames();
-            if (rolePowerNames.Contains(powerName))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        ///     获取当前登录用户拥有的全部权限列表
-        /// </summary>
-        /// <returns></returns>
-        protected List<string> GetRolePowerNames()
-        {
-            //// 将用户拥有的权限列表保存在Session中，这样就避免每个请求多次查询数据库
-            //if (Session["UserPowerList"] == null)
-            //{
-            //    List<string> rolePowerNames = new List<string>();
-
-            //    // 超级管理员拥有所有权限
-            //    if (GetIdentityName() == "admin")
-            //    {
-            //        rolePowerNames = DB.Powers.Select(p => p.Name).ToList();
-            //    }
-            //    else
-            //    {
-            //        List<int> roleIDs = GetIdentityRoleIDs();
-
-            //        foreach (var role in DB.Roles.Include(r => r.Powers).Where(r => roleIDs.Contains(r.ID)))
-            //        {
-            //            foreach (var power in role.Powers)
-            //            {
-            //                if (!rolePowerNames.Contains(power.Name))
-            //                {
-            //                    rolePowerNames.Add(power.Name);
-            //                }
-            //            }
-            //        }
-            //    }
-
-            //    Session["UserPowerList"] = rolePowerNames;
-            //}
-            //return (List<string>)Session["UserPowerList"];
-
-            return null;
-        }
-
-        #endregion
-
-        #region 权限相关
-
-        protected void CheckPowerFailWithPage()
-        {
-            Response.Write(CHECK_POWER_FAIL_PAGE_MESSAGE);
-            Response.End();
-        }
-
-        protected void CheckPowerFailWithButton(Button btn)
-        {
-            btn.Enabled = false;
-            btn.ToolTip = CHECK_POWER_FAIL_ACTION_MESSAGE;
-        }
-
-        protected void CheckPowerFailWithLinkButtonField(Grid grid, string columnId)
-        {
-            var btn = grid.FindColumn(columnId) as LinkButtonField;
-            if (btn == null) return;
-            btn.Enabled = false;
-            btn.ToolTip = CHECK_POWER_FAIL_ACTION_MESSAGE;
-        }
-
-        protected void CheckPowerFailWithWindowField(Grid grid, string columnId)
-        {
-            var btn = grid.FindColumn(columnId) as WindowField;
-            if (btn == null) return;
-            btn.Enabled = false;
-            btn.ToolTip = CHECK_POWER_FAIL_ACTION_MESSAGE;
-        }
-
-        protected void CheckPowerFailWithAlert()
-        {
-            PageContext.RegisterStartupScript(Alert.GetShowInTopReference(CHECK_POWER_FAIL_ACTION_MESSAGE));
-        }
-
-        protected void CheckPowerWithButton(string powerName, Button btn)
-        {
-            if (!CheckPower(powerName))
-            {
-                CheckPowerFailWithButton(btn);
-            }
-        }
-
-        protected void CheckPowerWithLinkButtonField(string powerName, Grid grid, string columnId)
-        {
-            if (!CheckPower(powerName))
-            {
-                CheckPowerFailWithLinkButtonField(grid, columnId);
-            }
-        }
-
-        protected void CheckPowerWithWindowField(string powerName, Grid grid, string columnId)
-        {
-            if (!CheckPower(powerName))
-            {
-                CheckPowerFailWithWindowField(grid, columnId);
-            }
+            return SYS_ACTION_Helper.Actions.Any(action => action.ControlId == control.ID);
         }
 
         /// <summary>

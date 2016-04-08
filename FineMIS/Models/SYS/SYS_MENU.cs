@@ -6,19 +6,8 @@ using PetaPoco;
 
 namespace FineMIS
 {
-    public partial class SYS_MENU : ITree, ICloneable, IKeyId
+    public partial class SYS_MENU : ITree, IKeyId, ICloneable
     {
-        private static List<SYS_MENU> _menus;
-
-        public static List<SYS_MENU> Menus
-        {
-            get
-            {
-                InitMenus();
-                return _menus;
-            }
-        }
-
         [Ignore]
         public int TreeLevel { get; set; }
 
@@ -28,22 +17,67 @@ namespace FineMIS
         [Ignore]
         public bool IsTreeLeaf { get; set; }
 
+        public object Clone()
+        {
+            return new SYS_MENU
+            {
+                Id = Id,
+                ParentId = ParentId,
+                Name = Name,
+                ViewName = ViewName,
+                ImageUrl = ImageUrl,
+                NavigateUrl = NavigateUrl,
+                SortIndex = SortIndex,
+                TreeLevel = TreeLevel,
+                Enabled = Enabled,
+                IsTreeLeaf = IsTreeLeaf,
+                Active = Active,
+                UserBelongTo = UserBelongTo,
+                CmpyBelongTo = CmpyBelongTo
+            };
+        }
+    }
+
+    /// <summary>
+    /// use session to store menus
+    /// </summary>
+    public class SYS_MENU_Helper
+    {
+        public static List<SYS_MENU> Menus
+        {
+            get
+            {
+                if (!Current.IsAuthenticated) return new List<SYS_MENU>();
+                if ((List<SYS_MENU>)Current.Session["__MENUS__"] == null) Current.Session["__MENUS__"] = InitMenus();
+                return (List<SYS_MENU>)Current.Session["__MENUS__"];
+            }
+        }
+
         public static void Reload()
         {
-            _menus = null;
+            Current.Session["__MENUS__"] = null;
         }
 
-        private static void InitMenus()
+        private static List<SYS_MENU> InitMenus()
         {
-            _menus = new List<SYS_MENU>();
+            var menus = new List<SYS_MENU>();
 
-            var dbMenus = Fetch("WHERE Active=@0", true).OrderBy(m => m.SortIndex).ToList();
+            var dbMenus = SYS_MENU.Fetch(
+                Sql.Builder
+                    .LeftJoin("SYS_ROLE_MENU")
+                    .On("SYS_MENU.Id = SYS_ROLE_MENU.MenuId")
+                    .Where("RoleId IN (@ids)", new { ids = Current.RoleIds.ToArray() })
+                    .Where("SYS_MENU.Active = @0", true)
+                    .Where("SYS_ROLE_MENU.Active = @0", true)
+                    .OrderBy("SortIndex ASC")
+                ).Distinct(new SYS_MENU_Comparer()).ToList();
 
-            ResolveMenuCollection(dbMenus, 0, 0);
+            ResolveMenuCollection(dbMenus, 0, 0, ref menus);
+
+            return menus;
         }
 
-
-        private static int ResolveMenuCollection(List<SYS_MENU> dbMenus, long? parentId, int level)
+        private static int ResolveMenuCollection(List<SYS_MENU> dbMenus, long parentId, int level, ref List<SYS_MENU> menus)
         {
             var count = 0;
 
@@ -51,13 +85,13 @@ namespace FineMIS
             {
                 count++;
 
-                _menus.Add(menu);
+                menus.Add(menu);
                 menu.TreeLevel = level;
                 menu.IsTreeLeaf = true;
                 menu.Enabled = true;
 
                 level++;
-                var childCount = ResolveMenuCollection(dbMenus, menu.Id, level);
+                var childCount = ResolveMenuCollection(dbMenus, menu.Id, level, ref menus);
                 if (childCount != 0)
                 {
                     menu.IsTreeLeaf = false;
@@ -66,22 +100,21 @@ namespace FineMIS
             }
             return count;
         }
+    }
 
-        public object Clone()
+    /// <summary>
+    /// comparer of menus
+    /// </summary>
+    public class SYS_MENU_Comparer : IEqualityComparer<SYS_MENU>
+    {
+        public bool Equals(SYS_MENU x, SYS_MENU y)
         {
-            var menu = new SYS_MENU
-            {
-                Id = Id,
-                ParentId = ParentId,
-                Name = Name,
-                ImageUrl = ImageUrl,
-                NavigateUrl = NavigateUrl,
-                SortIndex = SortIndex,
-                TreeLevel = TreeLevel,
-                Enabled = Enabled,
-                IsTreeLeaf = IsTreeLeaf
-            };
-            return menu;
+            return x != null && y != null && x.Id == y.Id;
+        }
+
+        public int GetHashCode(SYS_MENU obj)
+        {
+            return obj.Id.GetHashCode();
         }
     }
 }

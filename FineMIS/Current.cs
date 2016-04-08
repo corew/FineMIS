@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Web;
+using System.Web.SessionState;
 
 namespace FineMIS
 {
@@ -18,9 +20,24 @@ namespace FineMIS
         public static HttpRequest Request => Context.Request;
 
         /// <summary>
+        /// Shortcut to HttpContext.Current.Session.
+        /// </summary>
+        public static HttpSessionState Session
+        {
+            get
+            {
+                // if not authenticated, clear session
+                if (!IsAuthenticated) HttpContext.Current.Session.Clear();
+                return HttpContext.Current.Session;
+            }
+        }
+
+        /// <summary>
         /// Shortcut to HttpContext.Current.User.Identity.Name.
         /// </summary>
         public static string UserName => Context.User.Identity.Name;
+
+        public static bool IsAuthenticated => Context.User.Identity.IsAuthenticated;
 
         /// <summary>
         /// Shortcut to HttpContext.Current.User.Identity.RoleIds
@@ -30,6 +47,23 @@ namespace FineMIS
                 (Context.User.Identity as CustomIdentity) != null
                     ? ((CustomIdentity)Context.User.Identity).RoleIds
                     : new List<long>();
+
+        /// <summary>
+        /// RoleIds split by comma
+        /// </summary>
+        public static string RoleIdsString
+        {
+            get
+            {
+                var sb = new StringBuilder();
+                foreach (var id in RoleIds)
+                {
+                    sb.Append(id);
+                    sb.Append(",");
+                }
+                return sb.ToString().TrimEnd(',');
+            }
+        }
 
         /// <summary>
         /// Shortcut to HttpContext.Current.User.Identity.UserId

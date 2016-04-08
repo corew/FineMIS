@@ -9,12 +9,15 @@ namespace FineMIS.Pages
 {
     public abstract class SingleFormPage : PageBase, ISinglePageBase
     {
-        #region property
+        #region 属性
+
         /// <summary>
         /// 主表单实例
         /// </summary>
         public abstract Form MainForm { get; }
+
         protected ACTION Action { get; set; }
+
         protected long Id { get; set; }
 
         #endregion
@@ -22,8 +25,8 @@ namespace FineMIS.Pages
         #region 页面初始化
         protected override void OnInit(EventArgs e)
         {
-            Action = (ACTION)SafeConvert.ToInt32(Request["action"]);
-            Id = SafeConvert.ToInt64(Request["id"]);
+            Action = (ACTION)Request["action"].ToInt32();
+            Id = Request["id"].ToInt64();
             base.OnInit(e);
             InitForm();
         }
@@ -52,7 +55,6 @@ namespace FineMIS.Pages
             throw new NotImplementedException();
         }
         #endregion
-
 
         #region 常用按钮事件
         /// <summary>
@@ -136,7 +138,7 @@ namespace FineMIS.Pages
             try
             {
                 // 如果已经修改过数据，那么回发时应当刷新表格
-                PageContext.RegisterStartupScript(SafeConvert.ToBoolean(Session[FORCE_REFRESH])
+                PageContext.RegisterStartupScript(Session[FORCE_REFRESH].ToBoolean()
                     ? ActiveWindow.GetHidePostBackReference(FORCE_REFRESH)
                     : ActiveWindow.GetHideReference());
             }
@@ -146,7 +148,6 @@ namespace FineMIS.Pages
             }
         }
         #endregion
-
 
         #region 表单页面可能弹出新的页面（如：选择列表界面）
         /// <summary>
